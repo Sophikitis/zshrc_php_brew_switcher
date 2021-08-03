@@ -1,0 +1,45 @@
+#!/usr/bin/env php
+<?php
+
+$php_array=["php@5.6","php@7.0","php@7.1","php@7.2", "php@7.3" ,"php@7.4", "php@8.0"];
+$php_installed_array=[];
+$phpVer = isset($argv[1]) ? 'php@'.$argv[1] : null;
+
+if (!$phpVer) {
+    echo "Missing version argument\n";
+    exit(1);
+}
+
+if (!is_numeric($argv[1]) || !preg_match("/^php@[5-9]\.[0-9]$/", $phpVer)) {
+    echo "Invalid version format, version number must be a decimal value with precision of one, e.g. 7.0\n";
+    exit(2);
+}
+
+# What versions of php are installed via brew
+foreach ($php_array as $key => $value) {
+    if(shell_exec('brew ls --versions '.$value)){
+        $php_installed_array[]=$value;
+    }
+}
+
+# Check that the requested version is installed
+foreach ($php_installed_array as $php) {
+    if ($php === $phpVer ) {
+        echo "Switching to $phpVer... \n";
+
+        $user = get_current_user();
+        $zshrc_file = file_get_contents("/Users/$user/.zshrc");
+        file_put_contents("/Users/$user/.zshrc", preg_replace("/php@\d+\.\d+/", "$phpVer", $zshrc_file));
+        
+        echo "\n";
+        echo "PHP set to: $phpVer\n";
+        echo "Restart the terminal for the changes to take effect.\n";
+        echo "\n";
+        exit(3);
+    }
+}
+
+echo $phpVer.' is not installed on computer';
+
+
+
